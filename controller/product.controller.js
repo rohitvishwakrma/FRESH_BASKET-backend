@@ -1,3 +1,37 @@
+// Change product stock status
+export const changeStock = async (req, res) => {
+  try {
+    const { id, inStock } = req.body;
+    if (!id || typeof inStock !== 'boolean') {
+      return res.status(400).json({ success: false, message: "Product ID and inStock status required." });
+    }
+    const product = await Product.findByIdAndUpdate(id, { inStock }, { new: true });
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found." });
+    }
+    res.status(200).json({ success: true, product, message: `Product stock updated to ${inStock ? 'in stock' : 'out of stock'}` });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error while updating stock." });
+  }
+};
+// Seller confirms expired products
+export const confirmExpiredProducts = async (req, res) => {
+  try {
+    const { ids } = req.body;
+    if (!Array.isArray(ids) || ids.length === 0) {
+      return res.status(400).json({ success: false, message: "No products selected." });
+    }
+    const now = new Date();
+    // Allow destroy for any product, regardless of expiryDate
+    const result = await Product.updateMany(
+      { _id: { $in: ids } },
+      { $set: { inStock: false, expiryConfirmedAt: now } }
+    );
+    res.status(200).json({ success: true, result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error while confirming expired products." });
+  }
+};
 // Get all products
 export const getProducts = async (req, res) => {
   try {

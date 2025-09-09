@@ -21,13 +21,13 @@ import About from "./companyPages/About";
 import Career from "./companyPages/Career";
 import Blog from "./companyPages/Blog";
 import Partners from "./companyPages/Partners";
-import Press from "./companyPages/Press"; 
+import Article from "./companyPages/Article"; 
 import TermsPolicy from "./termsPolicy/TermsPolicy";
 import ContactUs from "./supportPages/ContactUs";
 import  CustomerHelp  from "./supportPages/Help";
 import Help from "./supportPages/Help";
 import FAQsPage from "./supportPages/Faqs";
-import NotificationSettings from "./supportPages/NotifiactionExpiry";
+// import NotificationSettings from "./supportPages/NotifiactionExpiry";
 import QuickSeasonalRecipes from "./companyPages/QuickSeasonalRecipes";
 import StoreVegetables from "./companyPages/StoreVegetables";
 
@@ -40,7 +40,7 @@ const App = () => {
   const location=useLocation();
   
   // hidden path
-  const hideFooterPaths=["/About","/Careers","/Blog","/Partners","/Press  "];
+  const hideFooterPaths=["/About","/Careers","/Blog","/Partners","/Article  "];
   const shouldHideFooter = hideFooterPaths.includes(location.pathname);
 
   useEffect(() => {
