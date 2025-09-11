@@ -9,9 +9,13 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const admin = await Admin.findOne({ email });
   if (!admin) {
+    console.log('Admin not found');
     return res.status(401).json({ message: 'Invalid email or password.' });
   }
+  console.log('Stored hash:', admin.password);
+  console.log('Entered password:', password);
   const valid = await admin.comparePassword(password);
+  console.log('Password valid:', valid);
   if (!valid) {
     return res.status(401).json({ message: 'Invalid email or password.' });
   }
@@ -25,10 +29,8 @@ router.post('/register', async (req, res) => {
   const { email, password } = req.body;
   const existing = await Admin.findOne({ email });
   if (existing) return res.status(400).json({ message: 'Admin already exists.' });
-  const bcrypt = await import('bcryptjs');
-  const hash = await bcrypt.hash(password, 10);
-  const admin = new Admin({ email, password: hash });
-  await admin.save();
+  const admin = new Admin({ email, password }); // pass plain password
+  await admin.save(); // pre-save hook will hash it
   res.json({ message: 'Admin registered.' });
 });
 
