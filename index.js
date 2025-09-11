@@ -1,9 +1,13 @@
+// ...existing code...
+// ...existing code...
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import { connectDB } from "./config/connectDB.js";
 dotenv.config();
+console.log('RAZORPAY_KEY_ID:', process.env.RAZORPAY_KEY_ID);
+console.log('RAZORPAY_KEY_SECRET:', process.env.RAZORPAY_KEY_SECRET);
 import userRoutes from "./routes/user.routes.js";
 import sellerRoutes from "./routes/seller.routes.js";
 import productRoutes from "./routes/product.routes.js";
@@ -14,10 +18,14 @@ import contactRoutes from "./routes/contact.routes.js";
 import partnerRoutes from "./routes/partner.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
 import careerRoutes from "./routes/career.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
 import { startExpiryNotificationJob } from "./Foodutils/expairynotification.js";  
 import  cloudinary from "./config/cloudinary.js";
 
 const app = express();
+import adminRequestsRoutes from "./routes/admin.requests.routes.js";
+import refundRoutes from "./routes/refund.routes.js";
+import cancellationRoutes from "./routes/cancellation.routes.js";
 
 // allow multiple origins
 // Allow all local frontend ports for development
@@ -47,7 +55,13 @@ app.use("/api/order", orderRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/partners", partnerRoutes);
 app.use("/api/admin", adminRoutes);
-app.use("/api/career", careerRoutes);
+
+
+
+app.use("/api/review", reviewRoutes);
+app.use("/api/refund", refundRoutes);
+app.use("/api/cancellation", cancellationRoutes);
+app.use("/api/admin/requests", adminRequestsRoutes);
 
 
 const PORT = process.env.PORT || 5000;
