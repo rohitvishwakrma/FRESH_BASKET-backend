@@ -1,38 +1,54 @@
-import Partner from "../models/Partner.model.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
-// Partner registration (after approval, set password)
-export const setPartnerPassword = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const partner = await Partner.findOne({ email, status: "approved" });
-    if (!partner) return res.status(404).json({ message: "Partner not found or not approved." });
-    partner.password = await bcrypt.hash(password, 10);
-    await partner.save();
-    res.json({ message: "Password set successfully." });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+import Partner from "../models/Partner.model.js";
+// Dummy implementations for password set and login
+export const setPartnerPassword = (req, res) => {
+		const { id, password } = req.body;
+		if (!id || !password) {
+			return res.status(400).json({ success: false, message: "Partner ID and password required." });
+		}
+		import('bcryptjs').then(bcrypt => {
+			bcrypt.hash(password, 10, async (err, hash) => {
+				if (err) {
+					return res.status(500).json({ success: false, message: "Error hashing password." });
+				}
+				try {
+					const partner = await Partner.findById(id);
+					if (!partner) {
+						return res.status(404).json({ success: false, message: "Partner not found." });
+					}
+					partner.password = hash;
+					await partner.save();
+					return res.json({ success: true, message: "Password set successfully." });
+				} catch (error) {
+					return res.status(500).json({ success: false, message: "Server error." });
+				}
+			});
+		});
 };
 
-// Partner login
 export const partnerLogin = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const partner = await Partner.findOne({ email, status: "approved" });
-    if (!partner || !partner.password) return res.status(400).json({ message: "Invalid credentials or not approved." });
-    const isMatch = await bcrypt.compare(password, partner.password);
-    if (!isMatch) return res.status(400).json({ message: "Invalid credentials." });
-    const token = jwt.sign({ email: partner.email, role: "seller" }, process.env.JWT_SECRET, { expiresIn: "7d" });
-    res.cookie("sellerToken", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "Strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-    res.json({ message: "Login successful", success: true });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+	const { email, password } = req.body;
+	if (!email || !password) {
+		return res.status(400).json({ success: false, message: "Email and password required." });
+	}
+	try {
+		const partner = await Partner.findOne({ email });
+		if (!partner) {
+			return res.status(404).json({ success: false, message: "Partner not found." });
+		}
+		if (partner.status !== "approved") {
+			return res.status(403).json({ success: false, message: "Partner not approved by admin." });
+		}
+		if (!partner.password) {
+			return res.status(400).json({ success: false, message: "No password set. Please set your password." });
+		}
+		const isMatch = await bcrypt.compare(password, partner.password);
+		if (!isMatch) {
+			return res.status(401).json({ success: false, message: "Invalid password." });
+		}
+		// Optionally, generate JWT here
+		return res.json({ success: true, message: "Login successful! You are now a seller." });
+	} catch (err) {
+		return res.status(500).json({ success: false, message: "Server error." });
+	}
 };

@@ -27,7 +27,7 @@ import ContactUs from "./supportPages/ContactUs";
 import  CustomerHelp  from "./supportPages/Help";
 import Help from "./supportPages/Help";
 import FAQsPage from "./supportPages/Faqs";
-// import NotificationSettings from "./supportPages/NotifiactionExpiry";
+import NotificationSettings from "./supportPages/NotifiactionExpiry";
 import QuickSeasonalRecipes from "./companyPages/QuickSeasonalRecipes";
 import StoreVegetables from "./companyPages/StoreVegetables";
 

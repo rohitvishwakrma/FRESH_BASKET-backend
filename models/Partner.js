@@ -12,7 +12,6 @@ const partnerSchema = new mongoose.Schema({
     enum: ["pending", "approved", "rejected"],
     default: "pending",
   },
-  password: { type: String }, // hashed password for seller login
   createdAt: { type: Date, default: Date.now },
 });
 

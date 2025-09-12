@@ -32,9 +32,6 @@ const productSchema = new mongoose.Schema({
   expiryDate: {
     type: Date,
     required: true
-  },
-  expiryConfirmedAt: {
-    type: Date
   }
 
 });

@@ -2,7 +2,10 @@ import express from "express";
 import Partner from "../models/Partner.model.js";
 import multer from "multer";
 import path from "path";
-import { setPartnerPassword, partnerLogin } from "../controller/partner.auth.controller.js";
+import { partnerLogin } from "../controller/partner.auth.controller.js";
+import { setPartnerPassword } from "../controller/partner.auth.controller.js";
+import { createPartner } from "../controller/partner.controller.js";
+import { authSeller } from "../middlewares/authSeller.js";
 
 const router = express.Router();
 
@@ -20,32 +23,13 @@ const upload = multer({ storage });
 // ----------------------
 // Submit partner application
 // ----------------------
-router.post("/apply", upload.single("document"), async (req, res) => {
-  try {
-    const { businessName, contactPerson, email, phone, message } = req.body;
-    const document = req.file ? req.file.filename : null;
-
-    const newPartner = new Partner({
-      businessName,
-      contactPerson,
-      email,
-      phone,
-      message,
-      document,
-    });
-
-    await newPartner.save();
-    res.status(201).json({ message: "Application submitted successfully!" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
-  }
-});
+// Use controller for partner application
+router.post("/apply", upload.single("document"), createPartner);
 
 // ----------------------
 // Get all pending applications (Admin)
 // ----------------------
-router.get("/pending", async (req, res) => {
+router.get("/pending", authSeller, async (req, res) => {
   try {
     const pendingPartners = await Partner.find({ status: "pending" });
     res.status(200).json(pendingPartners);
@@ -58,7 +42,7 @@ router.get("/pending", async (req, res) => {
 // ----------------------
 // Approve or reject application (Admin)
 // ----------------------
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", authSeller, async (req, res) => {
   try {
     const { status } = req.body; // 'approved' or 'rejected'
     const partner = await Partner.findByIdAndUpdate(
@@ -87,7 +71,7 @@ router.get("/all", async (req, res) => {
   }
 });
 // ----------------------
-router.get("/approved", async (req, res) => {
+router.get("/approved", authSeller, async (req, res) => {
   try {
     const approvedPartners = await Partner.find({ status: "approved" });
     res.status(200).json(approvedPartners);
@@ -106,5 +90,8 @@ router.post("/set-password", setPartnerPassword);
 // Partner login
 // ----------------------
 router.post("/login", partnerLogin);
+
+// Set password for partner (admin only)
+router.post("/set-password", setPartnerPassword);
 
 export default router;

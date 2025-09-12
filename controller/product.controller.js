@@ -1,44 +1,26 @@
-// Change product stock status
-export const changeStock = async (req, res) => {
+// Update product stock
+export const updateProductStock = async (req, res) => {
   try {
-    const { id, inStock } = req.body;
-    if (!id || typeof inStock !== 'boolean') {
-      return res.status(400).json({ success: false, message: "Product ID and inStock status required." });
+    const { productId, stock } = req.body;
+    if (!productId || typeof stock !== 'number') {
+      return res.status(400).json({ success: false, message: "Product ID and stock value required." });
     }
-    const product = await Product.findByIdAndUpdate(id, { inStock }, { new: true });
+    const product = await Product.findByIdAndUpdate(productId, { stock, inStock: stock > 0 }, { new: true });
     if (!product) {
       return res.status(404).json({ success: false, message: "Product not found." });
     }
-    res.status(200).json({ success: true, product, message: `Product stock updated to ${inStock ? 'in stock' : 'out of stock'}` });
+    res.status(200).json({ success: true, product });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error while updating stock." });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
-// Seller confirms expired products
-export const confirmExpiredProducts = async (req, res) => {
+// Get product stock info
+export const getProductStock = async (req, res) => {
   try {
-    const { ids } = req.body;
-    if (!Array.isArray(ids) || ids.length === 0) {
-      return res.status(400).json({ success: false, message: "No products selected." });
-    }
-    const now = new Date();
-    // Allow destroy for any product, regardless of expiryDate
-    const result = await Product.updateMany(
-      { _id: { $in: ids } },
-      { $set: { inStock: false, expiryConfirmedAt: now } }
-    );
-    res.status(200).json({ success: true, result });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server error while confirming expired products." });
-  }
-};
-// Get all products
-export const getProducts = async (req, res) => {
-  try {
-    const products = await Product.find();
+    const products = await Product.find({}, 'name inStock stock');
     res.status(200).json({ success: true, products });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error while fetching products" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 import Product from "../models/product.model.js";
@@ -89,5 +71,15 @@ export const markExpiredProducts = async (req, res) => {
     res.status(200).json({ success: true, result: expiredProducts });
   } catch (error) {
     res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Get all products
+export const getProducts = async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.status(200).json({ success: true, products });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Server error while fetching products" });
   }
 };

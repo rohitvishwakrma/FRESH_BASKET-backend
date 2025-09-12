@@ -1,6 +1,14 @@
 import Order from "../models/order.model.js";
 import Product from "../models/product.model.js";
 import mongoose from "mongoose";
+import Razorpay from "razorpay";
+
+console.log('Razorpay Key:', process.env.RAZORPAY_KEY_ID);
+console.log('Razorpay Secret:', process.env.RAZORPAY_KEY_SECRET);
+
+
+// Razorpay instance should be created inside the function to ensure env variables are loaded
+// ...existing code...
 
 // Place order COD: /api/order/place
 // export const placeOrderCOD = async (req, res) => {
@@ -134,5 +142,50 @@ export const getAllOrders = async (req, res) => {
     res.status(200).json({ success: true, orders });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const createRazorpayOrder = async (req, res) => {
+  try {
+    const userId = req.user;
+    const { items, address } = req.body;
+    if (!address || !items || items.length === 0) {
+      return res.status(400).json({ message: "Invalid order details", success: false });
+    }
+    // Calculate amount
+    let amount = 0;
+    for (const item of items) {
+      const product = await Product.findById(item.product);
+      amount += (product.offerPrice ?? product.price) * item.quantity;
+    }
+    amount += Math.floor((amount * 2) / 100); // Add 2% tax
+    // Razorpay expects amount in paise
+    const razorpayOrder = await razorpay.orders.create({
+      amount: amount * 100,
+      currency: "INR",
+      receipt: `order_rcptid_${Date.now()}`,
+    });
+    res.json({ order: razorpayOrder, key: process.env.RAZORPAY_KEY_ID });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to create Razorpay order", error: error.message });
+  }
+};
+
+export const verifyRazorpayPayment = async (req, res) => {
+  const crypto = await import('crypto');
+  try {
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = req.body;
+    const generated_signature = crypto.createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
+      .update(razorpay_order_id + "|" + razorpay_payment_id)
+      .digest('hex');
+    if (generated_signature === razorpay_signature) {
+      // Mark order as paid (implement order update logic as needed)
+      // ...
+      return res.json({ success: true });
+    } else {
+      return res.status(400).json({ success: false, message: "Invalid signature" });
+    }
+  } catch (error) {
+    res.status(500).json({ message: "Payment verification failed", error: error.message });
   }
 };
