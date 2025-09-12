@@ -28,6 +28,7 @@ import reviewRoutes from "./routes/review.routes.js";
 import refundRoutes from "./routes/refund.routes.js";
 import cancellationRoutes from "./routes/cancellation.routes.js";
 import paymentRoutes from "./routes/rozarpay.routes.js";
+import careerRoutes from "./routes/career.routes.js";
 
 
 // Ensure uploads folder exists
@@ -72,6 +73,7 @@ app.use("/api/review", reviewRoutes);
 app.use("/api/refund", refundRoutes);
 app.use("/api/cancellation", cancellationRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/career", careerRoutes);
 
 // --- 🤖 Gemini AI Setup ---
 // Gemini AI chat code removed as requested

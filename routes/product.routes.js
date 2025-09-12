@@ -8,21 +8,28 @@ import {
   addProduct,
   getProducts,
   getProductStock,
-  updateProductStock
+  updateProductStock,
+  getProductById,
+  getProductByName
 } from "../controller/product.controller.js";
 import { upload } from "../config/multer.js";
 import { getExpiringProducts } from '../Foodutils/expairynotification.js';
 const router = express.Router();
 
-router.post("/add-product", authSeller, upload.array("image", 4), addProduct);
-router.get("/list", getProducts);
-// router.get("/id", getProductById); // Removed due to missing export
-// router.post("/stock", authSeller, changeStock); // Removed due to missing export
 
+// Add product
+router.post("/add-product", authSeller, upload.array("image", 4), addProduct);
+// List all products
+router.get("/list", getProducts);
+// Get product by ID
+router.get("/:id", getProductById);
+// Get product by name
+router.get("/name/:name", getProductByName);
 // Get product stock info
 router.get('/stock', getProductStock);
 // Update product stock
 router.patch('/stock', updateProductStock);
+// Get expiring products
 router.get('/expiring', authUserOrSeller, getExpiringProducts);
 
 export default router;
