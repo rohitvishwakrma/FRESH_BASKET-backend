@@ -31,5 +31,8 @@
     "serverless-http": "^4.0.0",
     "stripe": "^18.5.0"
   },
-  "description": ""
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
 }
