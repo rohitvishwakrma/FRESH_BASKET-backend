@@ -39,8 +39,13 @@ if (!fs.existsSync("uploads/resumes")) {
 const app = express();
 const server = createServer(app);
 
-// Allow multiple frontend origins
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://fresh-basket-frontend-weld.vercel.app",   // ✅ fixed
+  "https://fresh-basket-fr-git-fe00bc-rohit-vishwakarmas-projects-0ce99492.vercel.app", // preview deploys
+  "https://fresh-basket-frontend-dychzp9hq.vercel.app" // other alias
+];
 
 app.use(
   cors({
