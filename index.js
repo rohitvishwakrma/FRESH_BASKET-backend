@@ -1,20 +1,15 @@
 import dotenv from "dotenv";
 dotenv.config();
+
 import fs from "fs";
+import path from "path";
 import express from "express";
 import { createServer } from "http";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { connectDB } from "./config/connectDB.js";
+import { connectDB } from "./config/connectDB.js"; // Use named import as exported
 
-// Direct test for .env loading
-console.log('Current working directory:', process.cwd());
-import path from "path";
-console.log('Attempting to load .env from:', path.resolve(process.cwd(), '.env'));
-console.log('Loaded .env:', fs.existsSync('./.env'));
-console.log('RAZORPAY_KEY_ID:', process.env.RAZORPAY_KEY_ID);
-console.log('RAZORPAY_KEY_SECRET:', process.env.RAZORPAY_KEY_SECRET);
-console.log("rozarpay Connected")
+// Routes
 import userRoutes from "./routes/user.routes.js";
 import sellerRoutes from "./routes/seller.routes.js";
 import productRoutes from "./routes/product.routes.js";
@@ -30,36 +25,47 @@ import cancellationRoutes from "./routes/cancellation.routes.js";
 import paymentRoutes from "./routes/rozarpay.routes.js";
 import careerRoutes from "./routes/career.routes.js";
 
-
-// Ensure uploads folder exists
-if (!fs.existsSync("uploads/resumes")) {
-  fs.mkdirSync("uploads/resumes", { recursive: true });
+// --- Ensure uploads folder exists ---
+if (!fs.existsSync(path.join("uploads", "resumes"))) {
+  fs.mkdirSync(path.join("uploads", "resumes"), { recursive: true });
 }
 
+// --- Initialize app ---
 const app = express();
 const server = createServer(app);
 
-// Allow multiple frontend origins
-const allowedOrigins = ["http://localhost:5173", "http://localhost:5174"];
+// --- CORS Configuration ---
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  "https://fresh-basket-frontend-dzytvn3en.vercel.app"
+];
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin) return callback(null, true);
-      if (!allowedOrigins.includes(origin)) {
-        return callback(new Error("Not allowed by CORS"), false);
-      }
-      return callback(null, true);
-    },
+    origin: allowedOrigins,
     credentials: true,
   })
 );
 
+// --- Middleware ---
 app.use(cookieParser());
 app.use(express.json());
 
-// Api endpoints
-app.use("/images", express.static("uploads"));
+// --- Set cookie options for production ---
+app.use((req, res, next) => {
+  res.cookie('dummy', 'test', {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'Strict',
+  });
+  next();
+});
+
+// --- Static Files ---
+app.use("/images", express.static(path.join("uploads")));
+
+// --- API Routes ---
 app.use("/api/user", userRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/product", productRoutes);
@@ -75,59 +81,18 @@ app.use("/api/cancellation", cancellationRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/career", careerRoutes);
 
-// --- 🤖 Gemini AI Setup ---
-// Gemini AI chat code removed as requested
-// --- 🔌 Socket.io Setup ---
-// import { Server } from "socket.io";
-// const io = new Server(server, {
-//   cors: {
-//     origin: allowedOrigins,
-//     methods: ["GET", "POST"],
-//     credentials: true,
-//   },
-// });
-
-// --- 🤖 Gemini AI Setup ---
-// const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-// const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-// io.on("connection", (socket) => {
-//   console.log(" New client connected:", socket.id);
-
-//   socket.on("sendMessage", async (msg) => {
-//     console.log("💬 Message received:", msg);
-
-//     // Broadcast user message to all clients
-//     io.emit("receiveMessage", msg);
-
-//     // --- Ask Gemini AI for a reply ---
-//     try {
-//       const result = await model.generateContent(msg.text);
-//       const botReply = {
-//         sender: "Gemini AI",
-//         text: result.response.text(),
-//         time: new Date().toLocaleTimeString(),
-//       };
-
-//       // Send AI reply to all clients
-//       io.emit("receiveMessage", botReply);
-//     } catch (err) {
-//       console.error(" Gemini error:", err.message);
-//     }
-//   });
-
-//   socket.on("disconnect", () => {
-//     console.log(" Client disconnected:", socket.id);
-//   });
-// End of file
-
-// --- Start server ---
+// --- Connect to MongoDB & Start Server ---
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    //start expiry notification
-  // startExpiryNotificationJob(); // Disabled: not defined
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(` Server running on port ${PORT}`);
+    });
+  })
+  .catch((err) => {
+    console.error(" Failed to connect to MongoDB:", err);
+    process.exit(1);
   });
-});
+
+export default app;
