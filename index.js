@@ -38,7 +38,7 @@ const server = createServer(app);
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
-  "https://fresh-basket-frontend-dzytvn3en.vercel.app"
+  "https://fresh-basket-fr-git-fe00bc-rohit-vishwakarmas-projects-0ce99492.vercel.app"
 ];
 
 app.use(
