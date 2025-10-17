@@ -9,21 +9,21 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 import { connectDB } from "./config/connectDB.js"; // Use named import as exported
 
-// Routes will be imported dynamically to isolate startup errors
-let userRoutes,
-  sellerRoutes,
-  productRoutes,
-  cartRoutes,
-  addressRoutes,
-  orderRoutes,
-  contactRoutes,
-  partnerRoutes,
-  adminRoutes,
-  reviewRoutes,
-  refundRoutes,
-  cancellationRoutes,
-  paymentRoutes,
-  careerRoutes;
+// Routes
+import userRoutes from "./routes/user.routes.js";
+import sellerRoutes from "./routes/seller.routes.js";
+import productRoutes from "./routes/product.routes.js";
+import cartRoutes from "./routes/cart.routes.js";
+import addressRoutes from "./routes/address.routes.js";
+import orderRoutes from "./routes/order.routes.js";
+import contactRoutes from "./routes/contact.routes.js";
+import partnerRoutes from "./routes/partner.routes.js";
+import adminRoutes from "./routes/admin.routes.js";
+import reviewRoutes from "./routes/review.routes.js";
+import refundRoutes from "./routes/refund.routes.js";
+import cancellationRoutes from "./routes/cancellation.routes.js";
+import paymentRoutes from "./routes/rozarpay.routes.js";
+import careerRoutes from "./routes/career.routes.js";
 
 // --- Ensure uploads folder exists ---
 if (!fs.existsSync(path.join("uploads", "resumes"))) {
@@ -66,74 +66,20 @@ app.use((req, res, next) => {
 app.use("/images", express.static(path.join("uploads")));
 
 // --- API Routes ---
-// Dynamically import and mount route modules so errors are isolated and logged
-const registerRoutes = async () => {
-  try {
-    console.log('Registering route modules...');
-    userRoutes = (await import('./routes/user.routes.js')).default;
-    app.use('/api/user', userRoutes);
-    console.log('Mounted user routes');
-
-    sellerRoutes = (await import('./routes/seller.routes.js')).default;
-    app.use('/api/seller', sellerRoutes);
-    console.log('Mounted seller routes');
-
-    productRoutes = (await import('./routes/product.routes.js')).default;
-    app.use('/api/product', productRoutes);
-    console.log('Mounted product routes');
-
-    cartRoutes = (await import('./routes/cart.routes.js')).default;
-    app.use('/api/cart', cartRoutes);
-    console.log('Mounted cart routes');
-
-    addressRoutes = (await import('./routes/address.routes.js')).default;
-    app.use('/api/address', addressRoutes);
-    console.log('Mounted address routes');
-
-    orderRoutes = (await import('./routes/order.routes.js')).default;
-    app.use('/api/order', orderRoutes);
-    console.log('Mounted order routes');
-
-    contactRoutes = (await import('./routes/contact.routes.js')).default;
-    app.use('/api/contact', contactRoutes);
-    console.log('Mounted contact routes');
-
-    partnerRoutes = (await import('./routes/partner.routes.js')).default;
-    app.use('/api/partners', partnerRoutes);
-    console.log('Mounted partner routes');
-
-    adminRoutes = (await import('./routes/admin.routes.js')).default;
-    app.use('/api/admin', adminRoutes);
-    console.log('Mounted admin routes');
-
-    reviewRoutes = (await import('./routes/review.routes.js')).default;
-    app.use('/api/review', reviewRoutes);
-    console.log('Mounted review routes');
-
-    refundRoutes = (await import('./routes/refund.routes.js')).default;
-    app.use('/api/refund', refundRoutes);
-    console.log('Mounted refund routes');
-
-    cancellationRoutes = (await import('./routes/cancellation.routes.js')).default;
-    app.use('/api/cancellation', cancellationRoutes);
-    console.log('Mounted cancellation routes');
-
-    paymentRoutes = (await import('./routes/rozarpay.routes.js')).default;
-    app.use('/api/payment', paymentRoutes);
-    console.log('Mounted payment routes');
-
-    careerRoutes = (await import('./routes/career.routes.js')).default;
-    app.use('/api/career', careerRoutes);
-    console.log('Mounted career routes');
-
-    console.log('All route modules registered');
-  } catch (err) {
-    console.error('Route registration error:', err);
-    // swallow error to prevent crash while debugging CORS issue
-  }
-};
-
-registerRoutes();
+app.use("/api/user", userRoutes);
+app.use("/api/seller", sellerRoutes);
+app.use("/api/product", productRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/address", addressRoutes);
+app.use("/api/order", orderRoutes);
+app.use("/api/contact", contactRoutes);
+app.use("/api/partners", partnerRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/review", reviewRoutes);
+app.use("/api/refund", refundRoutes);
+app.use("/api/cancellation", cancellationRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/career", careerRoutes);
 
 // --- Connect to MongoDB & Start Server ---
 const PORT = process.env.PORT || 5000;
