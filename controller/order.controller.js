@@ -114,6 +114,63 @@ export const placeOrderCOD = async (req, res) => {
   }
 };
 
+// Place order for online payments (marked as paid)
+export const placeOrderOnline = async (req, res) => {
+  try {
+    const userId = req.user;
+    const { items, address, paymentDetails } = req.body;
+    if (!address || !items || items.length === 0) {
+      return res.status(400).json({ message: "Invalid order details", success: false });
+    }
+    const addressId = typeof address === 'object' && address !== null ? address._id : address;
+    if (!mongoose.Types.ObjectId.isValid(addressId)) {
+      return res.status(400).json({ message: "Invalid address provided", success: false });
+    }
+
+    // Validate product IDs and fetch products
+    const productIds = [];
+    for (const item of items) {
+      if (!item.product || !mongoose.Types.ObjectId.isValid(item.product)) {
+        return res.status(400).json({ message: `Invalid product ID '${item.product}' in order items.`, success: false });
+      }
+      productIds.push(item.product);
+    }
+
+    const uniqueProductIds = [...new Set(productIds)];
+    const products = await Product.find({ '_id': { $in: uniqueProductIds } });
+    if (products.length !== uniqueProductIds.length) {
+      const notFoundIds = uniqueProductIds.filter(id => !products.find(p => p._id.toString() === id));
+      return res.status(404).json({ message: `Products not found: ${notFoundIds.join(', ')}`, success: false });
+    }
+
+    let amount = 0;
+    const orderItems = items.map(item => {
+      const product = products.find(p => p._id.toString() === item.product);
+      amount += (product.offerPrice ?? product.price) * item.quantity;
+      const expiryDate = new Date();
+      expiryDate.setDate(expiryDate.getDate() + 3);
+      return { product: item.product, quantity: item.quantity, expiryDate };
+    });
+
+    amount += Math.floor((amount * 2) / 100); // tax
+
+    await Order.create({
+      userId,
+      items: orderItems,
+      address: addressId,
+      amount,
+      paymentType: "Online",
+      isPaid: true,
+      paymentDetails: paymentDetails || null,
+    });
+
+    res.status(201).json({ message: "Order placed successfully", success: true });
+  } catch (error) {
+    console.error("Error placing online order:", error);
+    res.status(500).json({ message: "Internal Server Error", error: error.message });
+  }
+};
+
 
 // oredr details for individual user :/api/order/user
 export const getUserOrders = async (req, res) => {

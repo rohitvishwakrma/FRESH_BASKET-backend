@@ -57,7 +57,7 @@ app.use((req, res, next) => {
   res.cookie('dummy', 'test', {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'Strict',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
   });
   next();
 });
